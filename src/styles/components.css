@@ -34,6 +34,10 @@
   object-fit: contain;
 }
 
+.navbar__brand-copy {
+  min-width: 0;
+}
+
 .navbar__brand-title {
   display: block;
   font-size: 1.05rem;
@@ -79,7 +83,14 @@
   justify-items: end;
 }
 
-.navbar__profile-label {
+.navbar__profile strong {
+  max-width: 180px;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.navbar__profile-label,
+.navbar__profile-manager {
   color: var(--text-muted);
   font-size: 0.72rem;
   font-weight: 700;
@@ -249,7 +260,9 @@
   z-index: 1;
   display: block;
   margin-top: 18px;
-  font-size: clamp(1.8rem, 2vw, 2.45rem);
+  font-size: clamp(1.5rem, 2vw, 2.35rem);
+  line-height: 1.1;
+  overflow-wrap: anywhere;
 }
 
 .stat-card__hint {
@@ -270,6 +283,7 @@
 }
 
 .player-card {
+  display: block;
   border: 1px solid rgba(123, 246, 220, 0.16);
   background: linear-gradient(180deg, rgba(10, 24, 30, 0.98), rgba(6, 14, 19, 0.98));
   box-shadow: var(--shadow-soft);
@@ -317,6 +331,70 @@
   background: radial-gradient(circle, rgba(140, 125, 255, 0.2), transparent 70%);
 }
 
+.player-card__portrait {
+  position: relative;
+  height: 190px;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.player-card__portrait img,
+.player-card__portrait-fallback {
+  width: 100%;
+  height: 100%;
+}
+
+.player-card__portrait img {
+  object-fit: cover;
+  object-position: center top;
+}
+
+.player-card__portrait-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, rgba(13, 29, 35, 0.96), rgba(7, 16, 20, 0.98));
+  color: var(--accent-cyan);
+  font-size: 2rem;
+  font-weight: 900;
+}
+
+.player-card__portrait-badge {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.player-card__portrait-badge--common {
+  background: rgba(68, 217, 255, 0.92);
+  color: #031013;
+}
+
+.player-card__portrait-badge--rare {
+  background: rgba(117, 246, 176, 0.92);
+  color: #031013;
+}
+
+.player-card__portrait-badge--epic {
+  background: rgba(255, 215, 108, 0.92);
+  color: #031013;
+}
+
+.player-card__portrait-badge--legendary,
+.player-card__portrait-badge--icon {
+  background: rgba(140, 125, 255, 0.94);
+  color: #fbfbff;
+}
+
 .player-card__top,
 .player-card__body,
 .player-card__stats,
@@ -357,7 +435,8 @@
 
 .player-card__rarity,
 .player-card__status,
-.player-card__position-pill {
+.player-card__position-pill,
+.player-card__role-chip {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -406,8 +485,23 @@
   padding: 16px 18px 0;
 }
 
+.player-card__overall-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.player-card__role-chip {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+
 .player-card__name {
-  margin: 0;
+  margin: 12px 0 0;
   font-size: 1.22rem;
   line-height: 1.15;
 }
@@ -503,6 +597,22 @@
   background: radial-gradient(circle, rgba(68, 217, 255, 0.2), transparent 70%);
 }
 
+.pack-card__media {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 170px;
+  border-radius: var(--radius);
+  background: rgba(5, 14, 18, 0.56);
+}
+
+.pack-card__image {
+  max-width: min(180px, 100%);
+  filter: drop-shadow(0 18px 36px rgba(0, 0, 0, 0.42));
+}
+
 .pack-card__header {
   position: relative;
   z-index: 1;
@@ -525,6 +635,7 @@
 .pack-card__header p {
   margin: 0;
   color: var(--text-secondary);
+  line-height: 1.55;
 }
 
 .pack-card__price-row {
@@ -535,7 +646,8 @@
   gap: 14px;
 }
 
-.pack-card__price-row div {
+.pack-card__price-row div,
+.pack-card__focus {
   padding: 14px;
   border: 1px solid var(--line-soft);
   border-radius: var(--radius);
@@ -550,6 +662,44 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+.pack-card__focus-rarities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pack-card__focus-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.pack-card__focus-pill--common {
+  background: rgba(68, 217, 255, 0.14);
+  color: var(--accent-cyan);
+}
+
+.pack-card__focus-pill--rare {
+  background: rgba(117, 246, 176, 0.14);
+  color: var(--accent-green);
+}
+
+.pack-card__focus-pill--epic {
+  background: rgba(255, 215, 108, 0.14);
+  color: var(--accent-gold);
+}
+
+.pack-card__focus-pill--legendary,
+.pack-card__focus-pill--icon {
+  background: rgba(140, 125, 255, 0.18);
+  color: #cbc3ff;
 }
 
 .pack-card__odds {

@@ -1,6 +1,6 @@
 {
-  "short_name": "DreamSquad",
-  "name": "DreamSquad FC",
+  "short_name": "Dream Squad FC",
+  "name": "Dream Squad FC",
   "icons": [
     {
       "src": "favicon.ico",
@@ -20,6 +20,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#071216",
+  "background_color": "#03080b"
 }

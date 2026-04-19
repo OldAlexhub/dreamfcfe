@@ -16,6 +16,8 @@ function Dashboard() {
   const [clubData, setClubData] = useState(null);
   const [pageLoading, setPageLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
+  const [savingTeamName, setSavingTeamName] = useState(false);
+  const [teamNameInput, setTeamNameInput] = useState("");
   const [error, setError] = useState("");
   const [infoMessage, setInfoMessage] = useState("");
 
@@ -43,6 +45,7 @@ function Dashboard() {
     return {
       _id: remoteUser._id || remoteUser.id || user?._id || user?.id || null,
       username: remoteUser.username || user?.username || "Dream Squad Coach",
+      teamName: remoteUser.teamName || user?.teamName || `${remoteUser.username || user?.username || "Dream Squad"} FC`,
       coins: Number(remoteUser.coins ?? user?.coins ?? 0),
       packsOpened: Number(remoteUser.packsOpened ?? user?.packsOpened ?? 0),
       wins: Number(remoteUser.wins ?? user?.wins ?? 0),
@@ -50,6 +53,10 @@ function Dashboard() {
       coinCooldownUntil: remoteUser.coinCooldownUntil || user?.coinCooldownUntil || null
     };
   }, [clubData, user]);
+
+  useEffect(() => {
+    setTeamNameInput(dashboardUser.teamName || "");
+  }, [dashboardUser.teamName]);
 
   const cooldownStatus = clubData?.cooldownStatus || {};
   const collectionSummary = clubData?.collectionSummary || {};
@@ -84,6 +91,26 @@ function Dashboard() {
     }
   }
 
+  async function handleSaveTeamName(event) {
+    event.preventDefault();
+    setSavingTeamName(true);
+    setError("");
+    setInfoMessage("");
+
+    try {
+      const response = await api.put("/club/profile", {
+        teamName: teamNameInput
+      });
+
+      setInfoMessage(response.data?.message || "Club name updated.");
+      await Promise.all([loadClub(), loadCurrentUser({ showLoader: false })]);
+    } catch (requestError) {
+      setError(getErrorMessage(requestError, "Could not update your club name."));
+    } finally {
+      setSavingTeamName(false);
+    }
+  }
+
   if (pageLoading) {
     return <LoadingSpinner fullScreen text="Warming up your dashboard..." />;
   }
@@ -95,15 +122,15 @@ function Dashboard() {
           <Link className="btn btn--primary" to="/packs">
             Open Packs
           </Link>
-          <Link className="btn btn--ghost" to="/collection">
-            View Collection
+          <Link className="btn btn--ghost" to="/matches">
+            Simulate Match
           </Link>
         </div>
       }
       backgroundImage={stadiumArt}
-      description="Track coins, refill timing, and how your club is growing every time you open a pack."
+      description={`Managed by ${dashboardUser.username}. Track coins, sharpen the XI, and get this club ready for matchday.`}
       eyebrow="Club HQ"
-      title={`Welcome back, ${dashboardUser.username}`}
+      title={dashboardUser.teamName}
     >
       {error ? <div className="form-message form-message--error">{error}</div> : null}
       {infoMessage ? <div className="form-message form-message--success">{infoMessage}</div> : null}
@@ -111,8 +138,25 @@ function Dashboard() {
       <section className="dashboard-grid">
         <StatCard accent="green" hint="Ready for the next pack run" icon="C" label="Coins" value={dashboardUser.coins.toLocaleString()} />
         <StatCard accent="cyan" hint="All-time openings" icon="PK" label="Packs Opened" value={dashboardUser.packsOpened} />
-        <StatCard accent="gold" hint="Future match mode ready" icon="W" label="Wins" value={dashboardUser.wins} />
-        <StatCard accent="purple" hint="Keep building chemistry" icon="L" label="Losses" value={dashboardUser.losses} />
+        <StatCard accent="gold" hint="Simulated match wins" icon="W" label="Wins" value={dashboardUser.wins} />
+        <StatCard accent="purple" hint="Learn and rebuild" icon="L" label="Losses" value={dashboardUser.losses} />
+      </section>
+
+      <section className="surface-panel dashboard-quickplay">
+        <div>
+          <span className="section-heading__eyebrow">Matchday</span>
+          <h2>Use your XI in a real game loop</h2>
+          <p>Pick the formation, lock the starters, then run a smart match simulation with chemistry, tactical fit, and result events.</p>
+        </div>
+
+        <div className="dashboard-quickplay__actions">
+          <Link className="btn btn--ghost" to="/squad">
+            Edit Formation
+          </Link>
+          <Link className="btn btn--primary" to="/matches">
+            Play Match
+          </Link>
+        </div>
       </section>
 
       <section className="dashboard-panels">
@@ -152,15 +196,37 @@ function Dashboard() {
         <article className="surface-panel dashboard-panel">
           <div className="section-heading">
             <div>
-              <span className="section-heading__eyebrow">Club Snapshot</span>
-              <h2>Collection pulse</h2>
+              <span className="section-heading__eyebrow">Club Identity</span>
+              <h2>Name the team</h2>
             </div>
           </div>
+
+          <form className="dashboard-team-form" onSubmit={handleSaveTeamName}>
+            <label className="field">
+              <span>Team Name</span>
+              <input
+                maxLength={32}
+                onChange={(event) => setTeamNameInput(event.target.value)}
+                placeholder="Dream Meteors FC"
+                type="text"
+                value={teamNameInput}
+              />
+            </label>
+
+            <div className="dashboard-team-form__actions">
+              <button className="btn btn--primary" disabled={savingTeamName} type="submit">
+                {savingTeamName ? "Saving..." : "Save Name"}
+              </button>
+              <Link className="btn btn--ghost" to="/squad">
+                Build XI
+              </Link>
+            </div>
+          </form>
 
           {collectionSummary.cardCount ? (
             <div className="dashboard-highlights">
               <div className="dashboard-highlight">
-                <span>Average Overall</span>
+                <span>Role-Aware Overall</span>
                 <strong>{collectionSummary.averageOverall || "--"}</strong>
               </div>
               <div className="dashboard-highlight">

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 
 import PageContainer from "../components/layout/PageContainer";
 import EmptyState from "../components/ui/EmptyState";
@@ -7,6 +8,8 @@ import PlayerCard, { getPlayerDisplayData } from "../components/ui/PlayerCard";
 import StatCard from "../components/ui/StatCard";
 import stadiumArt from "../assets/2.png";
 import api, { getErrorMessage } from "../services/api";
+
+const FALLBACK_FORMATIONS = ["4-3-3", "4-4-2", "4-2-3-1", "3-5-2", "3-4-3"];
 
 function getPositionGroup(positions) {
   const safePositions = Array.isArray(positions) ? positions : [];
@@ -50,8 +53,6 @@ function buildPitchRows(cards, formation) {
     buckets[getPositionGroup(player.positions)].push(card);
   });
 
-  const leftovers = [];
-
   function takeCards(groupKey, count) {
     const taken = buckets[groupKey].splice(0, count);
 
@@ -77,53 +78,122 @@ function buildPitchRows(cards, formation) {
     return taken;
   }
 
-  const rows = [
-    takeCards("ATT", attackersNeeded),
-    takeCards("MID", midfieldersNeeded),
-    takeCards("DEF", defendersNeeded),
-    takeCards("GK", 1)
+  return [
+    {
+      label: "Attack",
+      size: attackersNeeded,
+      cards: takeCards("ATT", attackersNeeded)
+    },
+    {
+      label: "Midfield",
+      size: midfieldersNeeded,
+      cards: takeCards("MID", midfieldersNeeded)
+    },
+    {
+      label: "Defense",
+      size: defendersNeeded,
+      cards: takeCards("DEF", defendersNeeded)
+    },
+    {
+      label: "Goalkeeper",
+      size: 1,
+      cards: takeCards("GK", 1)
+    }
   ];
-
-  Object.values(buckets).forEach((groupCards) => {
-    leftovers.push(...groupCards);
-  });
-
-  return {
-    rows,
-    leftovers
-  };
 }
 
 function Squad() {
   const [squadData, setSquadData] = useState(null);
+  const [availableCards, setAvailableCards] = useState([]);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [formation, setFormation] = useState("4-3-3");
+  const [formations, setFormations] = useState(FALLBACK_FORMATIONS);
   const [pageLoading, setPageLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [autoBuilding, setAutoBuilding] = useState(false);
   const [error, setError] = useState("");
   const [infoMessage, setInfoMessage] = useState("");
 
-  const loadSquad = useCallback(async () => {
-    setPageLoading(true);
+  const loadSquad = useCallback(async (showLoader = true) => {
+    if (showLoader) {
+      setPageLoading(true);
+    }
+
     setError("");
 
     try {
       const response = await api.get("/squad");
-      setSquadData(response.data?.squad || response.data);
+      const payload = response.data || {};
+      const nextSquad = payload.squad || payload;
+      const nextCards = payload.availableCards || payload.cards || [];
+      const nextFormations = payload.formations || FALLBACK_FORMATIONS;
+      const nextSelectedIds = (nextSquad?.startingXI || []).map((card) => card.id || card._id);
+
+      setSquadData(nextSquad);
+      setAvailableCards(nextCards);
+      setFormations(nextFormations);
+      setSelectedIds(nextSelectedIds);
+      setFormation(nextSquad?.formation || nextFormations[0] || "4-3-3");
     } catch (requestError) {
       setError(getErrorMessage(requestError, "Could not load your squad."));
     } finally {
-      setPageLoading(false);
+      if (showLoader) {
+        setPageLoading(false);
+      }
     }
   }, []);
 
   useEffect(() => {
-    loadSquad();
+    loadSquad(true);
   }, [loadSquad]);
 
-  const formation = squadData?.formation || "4-3-3";
-  const overall = squadData?.overall || 0;
-  const startingXI = useMemo(() => squadData?.startingXI || [], [squadData]);
+  const selectedCards = useMemo(() => {
+    return selectedIds
+      .map((selectedId) => availableCards.find((card) => (card.id || card._id) === selectedId))
+      .filter(Boolean);
+  }, [availableCards, selectedIds]);
+
   const insights = squadData?.insights || {};
-  const { rows, leftovers } = useMemo(() => buildPitchRows(startingXI, formation), [formation, startingXI]);
+  const pitchRows = useMemo(() => buildPitchRows(selectedCards, formation), [formation, selectedCards]);
+
+  function toggleStarter(cardId) {
+    setError("");
+    setInfoMessage("");
+
+    setSelectedIds((currentValue) => {
+      if (currentValue.includes(cardId)) {
+        return currentValue.filter((entry) => entry !== cardId);
+      }
+
+      if (currentValue.length >= 11) {
+        setError("You can only select 11 starters at a time.");
+        return currentValue;
+      }
+
+      return [...currentValue, cardId];
+    });
+  }
+
+  async function handleSaveSquad() {
+    setSaving(true);
+    setError("");
+    setInfoMessage("");
+
+    try {
+      const response = await api.put("/squad", {
+        formation,
+        startingXI: selectedIds
+      });
+
+      setSquadData(response.data?.squad || response.data);
+      setInfoMessage(response.data?.message || "Squad updated successfully.");
+      await loadSquad(false);
+    } catch (requestError) {
+      setError(getErrorMessage(requestError, "Could not save your squad."));
+    } finally {
+      setSaving(false);
+    }
+  }
 
   async function handleAutoBuild() {
     setAutoBuilding(true);
@@ -134,6 +204,7 @@ function Squad() {
       const response = await api.post("/squad/auto-build");
       setSquadData(response.data?.squad || response.data);
       setInfoMessage(response.data?.message || "Squad auto-built successfully.");
+      await loadSquad(false);
     } catch (requestError) {
       setError(getErrorMessage(requestError, "Could not auto-build your squad."));
     } finally {
@@ -145,10 +216,30 @@ function Squad() {
     return <LoadingSpinner fullScreen text="Drawing the starting XI..." />;
   }
 
+  if (!availableCards.length) {
+    return (
+      <PageContainer
+        backgroundImage={stadiumArt}
+        description="Open packs first, then bring your best cards onto the pitch."
+        eyebrow="Squad Builder"
+        title="Your Starting XI"
+      >
+        <EmptyState
+          actionLabel="Open Packs"
+          description="You need players before you can build a formation."
+          onAction={() => {
+            window.location.href = "/packs";
+          }}
+          title="No players available"
+        />
+      </PageContainer>
+    );
+  }
+
   return (
     <PageContainer
       backgroundImage={stadiumArt}
-      description="See your formation, chemistry, and strongest starters in one polished match-day view."
+      description="Pick the formation, choose the starters, and turn collected cards into a real matchday team."
       eyebrow="Squad Builder"
       title="Your Starting XI"
     >
@@ -157,62 +248,95 @@ function Squad() {
 
       <section className="squad-summary">
         <StatCard accent="green" hint="Current active shape" icon="FM" label="Formation" value={formation} />
-        <StatCard accent="cyan" hint="Average quality of your XI" icon="OVR" label="Overall" value={overall} />
+        <StatCard accent="cyan" hint="Role-aware quality of your XI" icon="OVR" label="Overall" value={squadData?.overall || 0} />
         <StatCard accent="gold" hint="Club, nation, and league links" icon="CH" label="Chemistry" value={insights.chemistryScore || 0} />
-        <StatCard accent="purple" hint="Players on the pitch" icon="XI" label="Starters" value={startingXI.length} />
+        <StatCard accent="purple" hint="Players selected now" icon="XI" label="Starters" value={`${selectedIds.length}/11`} />
       </section>
 
       <section className="surface-panel squad-tools">
-        <div>
-          <span className="section-heading__eyebrow">Auto Build</span>
-          <h2>Let the game set your best team</h2>
-          <p>The auto-build uses formation slots and player positions, not just raw rating.</p>
+        <div className="squad-tools__copy">
+          <span className="section-heading__eyebrow">Formation Control</span>
+          <h2>Use the cards you packed in a real team</h2>
+          <p>Choose a shape, select 11 starters, save the XI, then launch a simulation match from the finished squad.</p>
+
+          <div className="formation-selector">
+            {formations.map((formationOption) => (
+              <button
+                className={`formation-selector__button${formation === formationOption ? " is-active" : ""}`}
+                key={formationOption}
+                onClick={() => setFormation(formationOption)}
+                type="button"
+              >
+                {formationOption}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <button className="btn btn--primary" disabled={autoBuilding} onClick={handleAutoBuild} type="button">
-          {autoBuilding ? "Building..." : "Auto Build Squad"}
-        </button>
+        <div className="squad-tools__actions">
+          <button className="btn btn--ghost" disabled={autoBuilding} onClick={handleAutoBuild} type="button">
+            {autoBuilding ? "Building..." : "Auto Build"}
+          </button>
+          <button className="btn btn--primary" disabled={saving} onClick={handleSaveSquad} type="button">
+            {saving ? "Saving..." : "Save XI"}
+          </button>
+          <Link className="btn btn--ghost" to="/matches">
+            Play Match
+          </Link>
+        </div>
       </section>
 
-      {startingXI.length ? (
-        <>
-          <section className="squad-pitch">
-            <div className="squad-pitch__lines" />
+      <section className="squad-pitch">
+        <div className="squad-pitch__lines" />
 
-            {rows.map((rowCards, rowIndex) => (
-              <div className="squad-pitch__row" key={`row-${rowIndex}`}>
-                {rowCards.map((card) => (
-                  <PlayerCard card={card} compact key={card.id || card._id} />
-                ))}
-              </div>
-            ))}
-          </section>
+        {pitchRows.map((row) => (
+          <div className="squad-pitch__layer" key={row.label}>
+            <span className="squad-pitch__label">{row.label}</span>
+            <div className="squad-pitch__row">
+              {Array.from({ length: row.size }).map((_, index) => {
+                const card = row.cards[index];
 
-          {leftovers.length ? (
-            <section className="surface-panel squad-bench">
-              <div className="section-heading">
-                <div>
-                  <span className="section-heading__eyebrow">Extra Starters</span>
-                  <h2>Overflow from the current shape</h2>
-                </div>
-              </div>
+                if (!card) {
+                  return (
+                    <div className="squad-pitch__slot" key={`${row.label}-slot-${index}`}>
+                      <span>{row.label}</span>
+                    </div>
+                  );
+                }
 
-              <div className="squad-bench__grid">
-                {leftovers.map((card) => (
-                  <PlayerCard card={card} compact key={card.id || card._id} />
-                ))}
-              </div>
-            </section>
-          ) : null}
-        </>
-      ) : (
-        <EmptyState
-          actionLabel="Auto Build Now"
-          description="You do not have a starting XI yet. Auto-build one from your collection."
-          onAction={handleAutoBuild}
-          title="No squad selected"
-        />
-      )}
+                return <PlayerCard card={card} compact key={card.id || card._id} />;
+              })}
+            </div>
+          </div>
+        ))}
+      </section>
+
+      <section className="surface-panel squad-selection">
+        <div className="section-heading">
+          <div>
+            <span className="section-heading__eyebrow">Starter Pool</span>
+            <h2>Select the matchday squad</h2>
+            <p>Tap cards to add or remove them from the starting XI. The saved squad is the team used in match simulations.</p>
+          </div>
+          <span className="pill">{selectedIds.length} selected</span>
+        </div>
+
+        <div className="collection-grid">
+          {availableCards.map((card) => {
+            const cardId = card.id || card._id;
+
+            return (
+              <PlayerCard
+                card={card}
+                key={cardId}
+                onSelect={toggleStarter}
+                selectable
+                selected={selectedIds.includes(cardId)}
+              />
+            );
+          })}
+        </div>
+      </section>
     </PageContainer>
   );
 }

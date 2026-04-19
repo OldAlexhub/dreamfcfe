@@ -1,5 +1,7 @@
 import React from "react";
 
+import { getPackVisual } from "../../utils/packVisuals";
+
 function formatOddsValue(value) {
   const parsedValue = Number(value);
 
@@ -11,7 +13,7 @@ function formatOddsValue(value) {
     return `${(parsedValue * 100).toFixed(parsedValue < 0.1 ? 1 : 0)}%`;
   }
 
-  return `${parsedValue}`;
+  return `${parsedValue}%`;
 }
 
 function getPackId(pack) {
@@ -23,14 +25,25 @@ function PackCard({ pack, onOpen, opening = false, disabled = false }) {
   const minPlayers = Number(pack.minPlayers || pack.min_cards || 0);
   const maxPlayers = Number(pack.maxPlayers || pack.max_cards || minPlayers || 0);
   const odds = pack.odds || {};
+  const visual = getPackVisual(pack);
+  const highlightRarities = Object.entries(odds)
+    .filter(([, value]) => Number(value || 0) > 0)
+    .sort((leftValue, rightValue) => Number(rightValue[1]) - Number(leftValue[1]))
+    .slice(-3)
+    .map(([rarity]) => rarity);
 
   return (
-    <article className="pack-card">
+    <article className={`pack-card pack-card--${visual.tier}`}>
       <div className="pack-card__glow" />
+
+      <div className="pack-card__media">
+        <img alt={pack.name || "Dream Squad Pack"} className="pack-card__image" src={visual.image} />
+      </div>
+
       <div className="pack-card__header">
-        <span className="pack-card__tag">Pack Tier</span>
+        <span className="pack-card__tag">{visual.focusLabel}</span>
         <h3>{pack.name || "Mystery Pack"}</h3>
-        <p>{minPlayers === maxPlayers ? `${minPlayers} players` : `${minPlayers}-${maxPlayers} players`}</p>
+        <p>{visual.tagline}</p>
       </div>
 
       <div className="pack-card__price-row">
@@ -39,8 +52,19 @@ function PackCard({ pack, onOpen, opening = false, disabled = false }) {
           <strong>{Number(pack.cost || 0).toLocaleString()} coins</strong>
         </div>
         <div>
-          <span className="pack-card__label">Best Pulls</span>
-          <strong>{Object.keys(odds).length} rarities</strong>
+          <span className="pack-card__label">Players</span>
+          <strong>{minPlayers === maxPlayers ? `${minPlayers}` : `${minPlayers}-${maxPlayers}`}</strong>
+        </div>
+      </div>
+
+      <div className="pack-card__focus">
+        <span className="pack-card__label">Top Pull Window</span>
+        <div className="pack-card__focus-rarities">
+          {highlightRarities.map((rarity) => (
+            <span className={`pack-card__focus-pill pack-card__focus-pill--${rarity}`} key={`${packId}-${rarity}`}>
+              {rarity}
+            </span>
+          ))}
         </div>
       </div>
 

@@ -13,6 +13,10 @@
   padding: 22px;
 }
 
+.squad-tools__copy {
+  max-width: 760px;
+}
+
 .squad-tools h2 {
   margin: 6px 0 8px;
   font-size: 1.35rem;
@@ -21,12 +25,42 @@
 .squad-tools p {
   margin: 0;
   color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.squad-tools__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.formation-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.formation-selector__button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  background: rgba(8, 18, 24, 0.72);
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.formation-selector__button.is-active {
+  border-color: rgba(68, 217, 255, 0.4);
+  background: rgba(68, 217, 255, 0.12);
+  color: var(--text-primary);
 }
 
 .squad-pitch {
   position: relative;
   display: grid;
-  gap: 22px;
+  gap: 24px;
   margin-top: 24px;
   padding: 30px 20px;
   border: 1px solid rgba(117, 246, 176, 0.16);
@@ -71,24 +105,46 @@
   border-radius: 50%;
 }
 
-.squad-pitch__row {
+.squad-pitch__layer {
   position: relative;
   z-index: 1;
+}
+
+.squad-pitch__label {
+  display: inline-flex;
+  margin-bottom: 10px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.squad-pitch__row {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 14px;
 }
 
-.squad-bench {
-  margin-top: 24px;
-  padding: 22px;
+.squad-pitch__slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(100%, 240px);
+  min-height: 210px;
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+  border-radius: var(--radius);
+  background: rgba(7, 20, 14, 0.28);
+  color: rgba(255, 255, 255, 0.72);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
-.squad-bench__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 14px;
+.squad-selection {
+  margin-top: 24px;
+  padding: 22px;
 }
 
 @media (max-width: 1080px) {
@@ -97,7 +153,7 @@
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 860px) {
   .squad-tools {
     align-items: flex-start;
     flex-direction: column;
@@ -111,5 +167,9 @@
 
   .squad-pitch {
     padding: 18px 12px;
+  }
+
+  .squad-pitch__slot {
+    min-height: 150px;
   }
 }

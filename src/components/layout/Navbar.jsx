@@ -26,7 +26,7 @@ function Navbar() {
           </span>
           <span className="navbar__brand-copy">
             <span className="navbar__brand-title">Dream Squad FC</span>
-            <span className="navbar__brand-subtitle">Packs. Stars. Best XI.</span>
+            <span className="navbar__brand-subtitle">Packs. Clubs. Simulated Matchday.</span>
           </span>
         </Link>
 
@@ -58,6 +58,9 @@ function Navbar() {
                 <NavLink className={getNavLinkClass} to="/squad">
                   Squad
                 </NavLink>
+                <NavLink className={getNavLinkClass} to="/matches">
+                  Play
+                </NavLink>
               </>
             ) : (
               <>
@@ -75,8 +78,9 @@ function Navbar() {
             {user ? (
               <>
                 <div className="navbar__profile">
-                  <span className="navbar__profile-label">Manager</span>
-                  <strong>{user.username || "Dream Squad Coach"}</strong>
+                  <span className="navbar__profile-label">Club</span>
+                  <strong>{user.teamName || `${user.username} FC`}</strong>
+                  <span className="navbar__profile-manager">@{user.username || "coach"}</span>
                   <span className="navbar__profile-coins">{Number(user.coins || 0).toLocaleString()} coins</span>
                 </div>
                 <button className="btn btn--ghost" onClick={logout} type="button">

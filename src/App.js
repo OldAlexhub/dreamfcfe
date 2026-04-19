@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import Collection from "./pages/Collection";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
+import Matches from "./pages/Matches";
 import NotFound from "./pages/NotFound";
 import Packs from "./pages/Packs";
 import Register from "./pages/Register";
@@ -20,6 +21,7 @@ import "./styles/dashboard.css";
 import "./styles/packs.css";
 import "./styles/collection.css";
 import "./styles/squad.css";
+import "./styles/matches.css";
 
 function HomeRedirect() {
   const { user, loading } = useAuth();
@@ -98,6 +100,14 @@ function AppRoutes() {
             element={
               <ProtectedRoute>
                 <Squad />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/matches"
+            element={
+              <ProtectedRoute>
+                <Matches />
               </ProtectedRoute>
             }
           />

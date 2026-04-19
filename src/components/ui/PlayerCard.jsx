@@ -1,4 +1,6 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+
+import { getWikipediaPlayerImage } from "../../utils/playerImage";
 
 function readFirstText(...values) {
   const value = values.find((entry) => typeof entry === "string" && entry.trim());
@@ -33,19 +35,19 @@ function parsePositions(value) {
 }
 
 function deriveRarity(overall) {
-  if (overall >= 92) {
+  if (overall >= 93) {
     return "icon";
   }
 
-  if (overall >= 87) {
+  if (overall >= 89) {
     return "legendary";
   }
 
-  if (overall >= 80) {
+  if (overall >= 83) {
     return "epic";
   }
 
-  if (overall >= 70) {
+  if (overall >= 75) {
     return "rare";
   }
 
@@ -56,26 +58,34 @@ export function getPlayerDisplayData(input) {
   const card = input || {};
   const player = card.player || card.playerId || card;
   const faceStats = player.faceStats || {};
-
   const positions = parsePositions(
     player.positions || player.player_positions || player.position || player.primaryPosition || ""
   );
-
   const overall =
-    readFirstNumber(player.overall, player.overall_rating, player.rating, player.faceStats?.overall) || 0;
+    readFirstNumber(player.effectiveOverall, player.overall, player.overall_rating, player.rating, player.faceStats?.overall) || 0;
+  const rawOverall = readFirstNumber(player.rawOverall, player.baseOverall, player.overall, player.overall_rating) || overall;
 
   return {
     id: card.id || card._id || player.id || player._id || "",
-    rarity: readFirstText(card.rarity, deriveRarity(overall)).toLowerCase(),
+    rarity: readFirstText(card.rarity, deriveRarity(rawOverall)).toLowerCase(),
     name: readFirstText(player.name, player.long_name, player.fullName, player.full_name, player.short_name) || "Mystery Star",
+    fullName: readFirstText(player.fullName, player.full_name, player.long_name, player.name),
     club: readFirstText(player.clubName, player.club_name, player.club, player.team) || "Free Agent",
     nation: readFirstText(player.nationality, player.nationality_name, player.country) || "Unknown Nation",
     positions: positions.length ? positions : ["Utility"],
     overall,
+    rawOverall,
+    bestRole: readFirstText(player.bestRole, player.positionGroup),
+    naturalRole: readFirstText(player.naturalRole, player.positionGroup),
     sellValue: readFirstNumber(card.sellValue, player.sellValue),
     isInSquad: Boolean(card.isInSquad),
     isFavorite: Boolean(card.isFavorite),
     acquiredFromPack: readFirstText(card.acquiredFromPack),
+    imageUrl: readFirstText(player.imageUrl, player.image_url, player.photo_url),
+    searchNames: [
+      readFirstText(player.fullName, player.full_name, player.long_name),
+      readFirstText(player.name, player.short_name)
+    ].filter(Boolean),
     faceStats: {
       pace: readFirstNumber(faceStats.pace, player.pace) || 0,
       shooting: readFirstNumber(faceStats.shooting, player.shooting) || 0,
@@ -93,9 +103,11 @@ function PlayerCard({
   selected = false,
   onSelect,
   compact = false,
-  footer
+  footer,
+  showPortrait = false
 }) {
   const player = useMemo(() => getPlayerDisplayData(card), [card]);
+  const [portraitUrl, setPortraitUrl] = useState(player.imageUrl || "");
   const isInteractive = selectable && typeof onSelect === "function";
   const Wrapper = isInteractive ? "button" : "article";
   const wrapperProps = isInteractive
@@ -105,6 +117,24 @@ function PlayerCard({
       }
     : {};
 
+  useEffect(() => {
+    let isActive = true;
+
+    if (!showPortrait || portraitUrl || !player.searchNames.length) {
+      return undefined;
+    }
+
+    getWikipediaPlayerImage(player.searchNames).then((imageUrl) => {
+      if (isActive && imageUrl) {
+        setPortraitUrl(imageUrl);
+      }
+    });
+
+    return () => {
+      isActive = false;
+    };
+  }, [player.searchNames, portraitUrl, showPortrait]);
+
   return (
     <Wrapper
       className={`player-card player-card--${player.rarity} ${selected ? "is-selected" : ""} ${
@@ -113,6 +143,19 @@ function PlayerCard({
       {...wrapperProps}
     >
       <div className="player-card__shine" />
+
+      {showPortrait ? (
+        <div className="player-card__portrait">
+          {portraitUrl ? (
+            <img alt={player.name} src={portraitUrl} />
+          ) : (
+            <div className="player-card__portrait-fallback">
+              <span>{player.positions[0]}</span>
+            </div>
+          )}
+          <span className={`player-card__portrait-badge player-card__portrait-badge--${player.rarity}`}>{player.rarity}</span>
+        </div>
+      ) : null}
 
       <div className="player-card__top">
         <div className="player-card__rating">
@@ -128,6 +171,11 @@ function PlayerCard({
       </div>
 
       <div className="player-card__body">
+        <div className="player-card__overall-meta">
+          {Math.abs(player.overall - player.rawOverall) >= 1 ? <span>Base {player.rawOverall}</span> : <span>Role-ready rating</span>}
+          <span className="player-card__role-chip">{player.bestRole || player.naturalRole || "STAR"}</span>
+        </div>
+
         <h3 className="player-card__name">{player.name}</h3>
         <p className="player-card__meta">{player.club}</p>
         <p className="player-card__meta player-card__meta--muted">{player.nation}</p>

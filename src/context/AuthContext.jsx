@@ -15,10 +15,13 @@ function normalizeUser(user) {
     return null;
   }
 
+  const username = user.username || "Dream Squad Coach";
+
   return {
     ...user,
     _id: user._id || user.id || null,
-    username: user.username || "Dream Squad Coach",
+    username,
+    teamName: user.teamName || `${username} FC`,
     coins: Number(user.coins || 0),
     packsOpened: Number(user.packsOpened || 0),
     wins: Number(user.wins || 0),

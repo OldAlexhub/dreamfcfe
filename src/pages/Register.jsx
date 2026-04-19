@@ -10,6 +10,7 @@ function Register() {
   const { register, user, loading } = useAuth();
   const [formValues, setFormValues] = useState({
     username: "",
+    teamName: "",
     password: ""
   });
   const [error, setError] = useState("");
@@ -59,8 +60,8 @@ function Register() {
               <span>Each account keeps its own football journey</span>
             </div>
             <div>
-              <strong>Safe Economy</strong>
-              <span>No real-money purchases, only in-game coins</span>
+              <strong>Club Identity</strong>
+              <span>Name the team and turn a collection into a real football club</span>
             </div>
           </div>
         </div>
@@ -75,7 +76,7 @@ function Register() {
           <div className="auth-card__header">
             <span className="auth-card__eyebrow">Create Account</span>
             <h2>Register</h2>
-            <p>Pick a manager name and start building your dream squad.</p>
+            <p>Pick a manager name, name your club, and start building your dream squad.</p>
           </div>
 
           <form className="auth-form" onSubmit={handleSubmit}>
@@ -93,6 +94,21 @@ function Register() {
                 required
                 type="text"
                 value={formValues.username}
+              />
+            </label>
+
+            <label className="field">
+              <span>Team Name</span>
+              <input
+                onChange={(event) =>
+                  setFormValues((currentValue) => ({
+                    ...currentValue,
+                    teamName: event.target.value
+                  }))
+                }
+                placeholder="Dream Meteors FC"
+                type="text"
+                value={formValues.teamName}
               />
             </label>
 

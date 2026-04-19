@@ -18,9 +18,10 @@ function Packs() {
   const [openingPackId, setOpeningPackId] = useState(null);
   const [revealData, setRevealData] = useState({
     open: false,
-    packName: "",
+    pack: null,
     coins: 0,
-    cards: []
+    cards: [],
+    pullSummary: null
   });
 
   const loadPacks = useCallback(async () => {
@@ -57,6 +58,20 @@ function Packs() {
     }, null);
   }, [packs]);
 
+  const mostExpensivePack = useMemo(() => {
+    if (!packs.length) {
+      return null;
+    }
+
+    return packs.reduce((bestPack, currentPack) => {
+      if (!bestPack || Number(currentPack.cost || 0) > Number(bestPack.cost || 0)) {
+        return currentPack;
+      }
+
+      return bestPack;
+    }, null);
+  }, [packs]);
+
   async function handleOpenPack(pack) {
     const packId = pack.id || pack._id;
 
@@ -75,9 +90,10 @@ function Packs() {
 
       setRevealData({
         open: true,
-        packName: payload.pack?.name || pack.name || "Dream Pack",
+        pack: payload.pack || pack,
         coins: Number(payload.coins ?? user?.coins ?? 0),
-        cards: pulledCards
+        cards: pulledCards,
+        pullSummary: payload.pullSummary || null
       });
 
       await loadCurrentUser({ showLoader: false });
@@ -96,7 +112,7 @@ function Packs() {
     <>
       <PageContainer
         backgroundImage={stadiumArt}
-        description="Choose a pack, light the tunnel, and reveal the next stars for your club."
+        description="Every pack now maps into a richer rarity ladder, with the strongest pulls driven by the real players collection."
         eyebrow="Pack Store"
         title="Open New Talent"
       >
@@ -104,7 +120,8 @@ function Packs() {
 
         <section className="packs-topline">
           <StatCard accent="green" hint="Available right now" icon="C" label="Your Coins" value={Number(user?.coins || 0).toLocaleString()} />
-          <StatCard accent="cyan" hint="Most budget-friendly entry" icon="PK" label="Cheapest Pack" value={cheapestPackCost !== null ? `${cheapestPackCost} coins` : "--"} />
+          <StatCard accent="cyan" hint="Best entry point" icon="PK" label="Cheapest Pack" value={cheapestPackCost !== null ? `${cheapestPackCost} coins` : "--"} />
+          <StatCard accent="gold" hint="Highest ceiling in store" icon="EL" label="Top Tier Pack" value={mostExpensivePack?.name || "--"} />
         </section>
 
         {packs.length ? (
@@ -138,13 +155,15 @@ function Packs() {
         onClose={() =>
           setRevealData({
             open: false,
-            packName: "",
+            pack: null,
             coins: 0,
-            cards: []
+            cards: [],
+            pullSummary: null
           })
         }
         open={revealData.open}
-        packName={revealData.packName}
+        pack={revealData.pack}
+        pullSummary={revealData.pullSummary}
       />
     </>
   );
