@@ -28,7 +28,9 @@ function Collection() {
       const response = await api.get("/club/collection");
       setCollectionData(response.data);
     } catch (requestError) {
-      setError(getErrorMessage(requestError, "Could not load your collection."));
+      setError(
+        getErrorMessage(requestError, "Could not load your collection."),
+      );
     } finally {
       setPageLoading(false);
     }
@@ -40,22 +42,25 @@ function Collection() {
 
   const cards = useMemo(
     () => collectionData?.collection || collectionData?.cards || [],
-    [collectionData]
+    [collectionData],
   );
   const insights = collectionData?.insights || {};
 
   const selectedCount = selectedIds.length;
   const selectedCards = useMemo(
     () => cards.filter((card) => selectedIds.includes(card.id || card._id)),
-    [cards, selectedIds]
+    [cards, selectedIds],
   );
-  const selectedSellValue = selectedCards.reduce((totalValue, card) => totalValue + Number(card.sellValue || 0), 0);
+  const selectedSellValue = selectedCards.reduce(
+    (totalValue, card) => totalValue + Number(card.sellValue || 0),
+    0,
+  );
 
   function toggleSelect(cardId) {
     setSelectedIds((currentValue) =>
       currentValue.includes(cardId)
         ? currentValue.filter((entry) => entry !== cardId)
-        : [...currentValue, cardId]
+        : [...currentValue, cardId],
     );
   }
 
@@ -70,13 +75,16 @@ function Collection() {
 
     try {
       const response = await api.post("/club/sell", {
-        ownedCardIds: selectedIds
+        ownedCardIds: selectedIds,
       });
 
       setInfoMessage(response.data?.message || "Cards sold successfully.");
       setSelectedIds([]);
 
-      await Promise.all([loadCollection(), loadCurrentUser({ showLoader: false })]);
+      await Promise.all([
+        loadCollection(),
+        loadCurrentUser({ showLoader: false }),
+      ]);
     } catch (requestError) {
       setError(getErrorMessage(requestError, "Those cards could not be sold."));
     } finally {
@@ -95,14 +103,42 @@ function Collection() {
       eyebrow="Collection"
       title="Your Card Club"
     >
-      {error ? <div className="form-message form-message--error">{error}</div> : null}
-      {infoMessage ? <div className="form-message form-message--success">{infoMessage}</div> : null}
+      {error ? (
+        <div className="form-message form-message--error">{error}</div>
+      ) : null}
+      {infoMessage ? (
+        <div className="form-message form-message--success">{infoMessage}</div>
+      ) : null}
 
       <section className="collection-summary">
-        <StatCard accent="cyan" hint="Total cards in your club" icon="CC" label="Cards" value={Number(collectionData?.totalCards || cards.length)} />
-        <StatCard accent="green" hint="Average player quality" icon="OVR" label="Average Overall" value={insights.averageOverall || "--"} />
-        <StatCard accent="gold" hint="Players already in your XI" icon="XI" label="In Squad" value={insights.squadCount || 0} />
-        <StatCard accent="purple" hint="Shared club, nation, and league links" icon="CH" label="Chemistry" value={insights.chemistryScore || 0} />
+        <StatCard
+          accent="cyan"
+          hint="Total cards in your club"
+          icon="CC"
+          label="Cards"
+          value={Number(collectionData?.totalCards || cards.length)}
+        />
+        <StatCard
+          accent="green"
+          hint="Average player quality"
+          icon="OVR"
+          label="Average Overall"
+          value={insights.averageOverall || "--"}
+        />
+        <StatCard
+          accent="gold"
+          hint="Players already in your XI"
+          icon="XI"
+          label="In Squad"
+          value={insights.squadCount || 0}
+        />
+        <StatCard
+          accent="purple"
+          hint="Shared club, nation, and league links"
+          icon="CH"
+          label="Chemistry"
+          value={insights.chemistryScore || 0}
+        />
       </section>
 
       {cards.length ? (
@@ -110,8 +146,16 @@ function Collection() {
           <section className="surface-panel collection-toolbar">
             <div>
               <span className="section-heading__eyebrow">Card Actions</span>
-              <h2>{selectedCount ? `${selectedCount} cards selected` : "Pick cards to sell"}</h2>
-              <p>{selectedCount ? `${selectedSellValue.toLocaleString()} coins ready if you sell now.` : "Tap cards to select them. Cards already in your squad stay protected."}</p>
+              <h2>
+                {selectedCount
+                  ? `${selectedCount} cards selected`
+                  : "Pick cards to sell"}
+              </h2>
+              <p>
+                {selectedCount
+                  ? `${selectedSellValue.toLocaleString()} coins ready if you sell now.`
+                  : "Tap cards to select them. Cards in your squad are selectable and will be removed from your XI when sold."}
+              </p>
             </div>
 
             <div className="collection-toolbar__actions">
@@ -143,7 +187,7 @@ function Collection() {
                   card={card}
                   key={cardId}
                   onSelect={toggleSelect}
-                  selectable={!card.isInSquad}
+                  selectable={true}
                   selected={selectedIds.includes(cardId)}
                   showPortrait
                 />
