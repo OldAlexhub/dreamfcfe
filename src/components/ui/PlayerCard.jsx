@@ -35,10 +35,6 @@ function parsePositions(value) {
 }
 
 function deriveRarity(overall) {
-  if (overall >= 93) {
-    return "icon";
-  }
-
   if (overall >= 89) {
     return "legendary";
   }
@@ -54,6 +50,36 @@ function deriveRarity(overall) {
   return "common";
 }
 
+function normalizeRarity(value) {
+  const normalizedValue = String(value || "").trim().toLowerCase();
+
+  if (!normalizedValue) {
+    return "";
+  }
+
+  if (normalizedValue.includes("icon")) {
+    return "icon";
+  }
+
+  if (normalizedValue.includes("legendary")) {
+    return "legendary";
+  }
+
+  if (normalizedValue.includes("epic")) {
+    return "epic";
+  }
+
+  if (normalizedValue.includes("rare")) {
+    return "rare";
+  }
+
+  if (normalizedValue.includes("common")) {
+    return "common";
+  }
+
+  return "";
+}
+
 export function getPlayerDisplayData(input) {
   const card = input || {};
   const player = card.player || card.playerId || card;
@@ -64,11 +90,20 @@ export function getPlayerDisplayData(input) {
   const overall =
     readFirstNumber(player.effectiveOverall, player.overall, player.overall_rating, player.rating, player.faceStats?.overall) || 0;
   const rawOverall = readFirstNumber(player.rawOverall, player.baseOverall, player.overall, player.overall_rating) || overall;
+  const rarity =
+    normalizeRarity(card.rarity) ||
+    normalizeRarity(player.rarityTier) ||
+    normalizeRarity(player.rarity) ||
+    normalizeRarity(player.cardDesign) ||
+    normalizeRarity(player.specialEdition) ||
+    deriveRarity(rawOverall);
 
   return {
     id: card.id || card._id || player.id || player._id || "",
-    rarity: readFirstText(card.rarity, deriveRarity(rawOverall)).toLowerCase(),
-    name: readFirstText(player.name, player.long_name, player.fullName, player.full_name, player.short_name) || "Mystery Star",
+    rarity,
+    cardDesign: normalizeRarity(card.cardDesign) || normalizeRarity(player.cardDesign) || rarity,
+    specialEdition: readFirstText(player.specialEdition, player.special_edition, player.cardSeries, player.card_series),
+    name: readFirstText(player.long_name, player.fullName, player.full_name, player.name, player.short_name) || "Mystery Star",
     fullName: readFirstText(player.fullName, player.full_name, player.long_name, player.name),
     club: readFirstText(player.clubName, player.club_name, player.club, player.team) || "Free Agent",
     nation: readFirstText(player.nationality, player.nationality_name, player.country) || "Unknown Nation",
