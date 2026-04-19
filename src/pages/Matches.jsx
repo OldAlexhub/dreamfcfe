@@ -218,6 +218,20 @@ function Matches() {
               </div>
             </div>
             <p>{resultData.match.recap}</p>
+
+            <div className="match-scoreboard__economy">
+              <div className={`match-scoreboard__economy-card ${Number(resultData.coinChange || 0) >= 0 ? "is-positive" : "is-negative"}`}>
+                <span>{Number(resultData.coinChange || 0) >= 0 ? "Coins Won" : "Coins Lost"}</span>
+                <strong>
+                  {Number(resultData.coinChange || 0) >= 0 ? "+" : ""}
+                  {Number(resultData.coinChange || 0).toLocaleString()}
+                </strong>
+              </div>
+              <div className="match-scoreboard__economy-card">
+                <span>Balance After Match</span>
+                <strong>{Number(resultData.economy?.coinsAfterMatch ?? resultData.user?.coins ?? user?.coins ?? 0).toLocaleString()}</strong>
+              </div>
+            </div>
           </div>
 
           <div className="match-result__grid">

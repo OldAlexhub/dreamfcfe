@@ -173,6 +173,41 @@
   line-height: 1.6;
 }
 
+.match-scoreboard__economy {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.match-scoreboard__economy-card {
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.match-scoreboard__economy-card span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.match-scoreboard__economy-card strong {
+  font-size: 1.3rem;
+}
+
+.match-scoreboard__economy-card.is-positive strong {
+  color: var(--accent-green);
+}
+
+.match-scoreboard__economy-card.is-negative strong {
+  color: var(--danger);
+}
+
 .match-result__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -267,5 +302,9 @@
   .match-scoreboard__line {
     justify-items: center;
     text-align: center;
+  }
+
+  .match-scoreboard__economy {
+    grid-template-columns: 1fr;
   }
 }
