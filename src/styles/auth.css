@@ -83,7 +83,8 @@
   width: min(100%, 470px);
   border: 1px solid var(--line-soft);
   border-radius: var(--radius);
-  background: linear-gradient(180deg, rgba(11, 24, 29, 0.96), rgba(7, 17, 21, 0.96));
+  background: linear-gradient(180deg, rgba(11, 24, 29, 0.99), rgba(4, 10, 14, 0.99));
+  backdrop-filter: blur(12px);
   box-shadow: var(--shadow-strong);
   padding: 28px;
 }
@@ -96,6 +97,7 @@
 .auth-card__header h2 {
   margin: 8px 0 10px;
   font-size: 2rem;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45);
 }
 
 .auth-card__header p {
@@ -123,7 +125,7 @@
 }
 
 .field span {
-  color: var(--text-secondary);
+  color: var(--text-primary);
   font-size: 0.9rem;
   font-weight: 600;
 }
@@ -134,7 +136,7 @@
   padding: 0 14px;
   border: 1px solid rgba(123, 246, 220, 0.18);
   border-radius: var(--radius);
-  background: rgba(5, 14, 18, 0.86);
+  background: rgba(4, 11, 15, 0.94);
   color: var(--text-primary);
   outline: none;
   transition: border-color 160ms ease, box-shadow 160ms ease;

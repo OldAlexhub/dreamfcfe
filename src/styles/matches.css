@@ -92,9 +92,9 @@
   align-items: center;
   gap: 14px;
   padding: 14px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(123, 246, 220, 0.12);
   border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--card-inset);
   color: var(--text-secondary);
 }
 
@@ -182,14 +182,14 @@
 
 .match-scoreboard__economy-card {
   padding: 14px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(123, 246, 220, 0.12);
   border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--card-inset);
 }
 
 .match-scoreboard__economy-card span {
   display: block;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: 0.78rem;
   margin-bottom: 8px;
   text-transform: uppercase;
@@ -227,9 +227,9 @@
 .match-standout,
 .match-event {
   padding: 14px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(123, 246, 220, 0.12);
   border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--card-inset);
 }
 
 .match-standout strong,
