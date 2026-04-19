@@ -3,20 +3,21 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@testing-library/dom": "^10.4.1",
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.2",
-    "@testing-library/user-event": "^13.5.0",
+    "axios": "^1.15.1",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
-    "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4"
+    "react-router-dom": "^6.30.3",
+    "react-scripts": "5.0.1"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "docs:screenshots": "node scripts/capture-docs.js",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.1"
   },
   "eslintConfig": {
     "extends": [
@@ -35,5 +36,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "playwright": "^1.59.1"
   }
 }

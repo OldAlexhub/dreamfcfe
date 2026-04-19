@@ -1,0 +1,115 @@
+.squad-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.squad-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 24px;
+  padding: 22px;
+}
+
+.squad-tools h2 {
+  margin: 6px 0 8px;
+  font-size: 1.35rem;
+}
+
+.squad-tools p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.squad-pitch {
+  position: relative;
+  display: grid;
+  gap: 22px;
+  margin-top: 24px;
+  padding: 30px 20px;
+  border: 1px solid rgba(117, 246, 176, 0.16);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(180deg, rgba(10, 68, 40, 0.68), rgba(6, 36, 24, 0.88)),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: auto, 110px 110px, 110px 110px;
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+
+.squad-pitch__lines {
+  position: absolute;
+  inset: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius);
+  pointer-events: none;
+}
+
+.squad-pitch__lines::before,
+.squad-pitch__lines::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.squad-pitch__lines::before {
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.squad-pitch__lines::after {
+  top: calc(50% - 48px);
+  width: 96px;
+  height: 96px;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+}
+
+.squad-pitch__row {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+}
+
+.squad-bench {
+  margin-top: 24px;
+  padding: 22px;
+}
+
+.squad-bench__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 1080px) {
+  .squad-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .squad-tools {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 640px) {
+  .squad-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .squad-pitch {
+    padding: 18px 12px;
+  }
+}
