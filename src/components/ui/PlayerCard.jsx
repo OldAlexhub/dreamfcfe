@@ -104,7 +104,7 @@ function PlayerCard({
   onSelect,
   compact = false,
   footer,
-  showPortrait = false
+  showPortrait = true
 }) {
   const player = useMemo(() => getPlayerDisplayData(card), [card]);
   const [portraitUrl, setPortraitUrl] = useState(player.imageUrl || "");
@@ -116,6 +116,10 @@ function PlayerCard({
         type: "button"
       }
     : {};
+
+  useEffect(() => {
+    setPortraitUrl(player.imageUrl || "");
+  }, [player.id, player.imageUrl]);
 
   useEffect(() => {
     let isActive = true;

@@ -145,6 +145,7 @@ function Collection() {
                   onSelect={toggleSelect}
                   selectable={!card.isInSquad}
                   selected={selectedIds.includes(cardId)}
+                  showPortrait
                 />
               );
             })}

@@ -304,7 +304,7 @@ function Squad() {
                   );
                 }
 
-                return <PlayerCard card={card} compact key={card.id || card._id} />;
+                return <PlayerCard card={card} compact key={card.id || card._id} showPortrait />;
               })}
             </div>
           </div>
@@ -332,6 +332,7 @@ function Squad() {
                 onSelect={toggleStarter}
                 selectable
                 selected={selectedIds.includes(cardId)}
+                showPortrait
               />
             );
           })}

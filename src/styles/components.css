@@ -305,6 +305,26 @@
   width: min(100%, 240px);
 }
 
+.player-card--compact .player-card__portrait {
+  height: 136px;
+}
+
+.player-card--compact .player-card__top {
+  padding: 14px 14px 0;
+}
+
+.player-card--compact .player-card__body {
+  padding: 12px 14px 0;
+}
+
+.player-card--compact .player-card__stats {
+  padding: 14px;
+}
+
+.player-card--compact .player-card__footer {
+  padding: 0 14px 14px;
+}
+
 .player-card__shine {
   position: absolute;
   inset: -30% auto auto -20%;
