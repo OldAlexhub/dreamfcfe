@@ -14,7 +14,7 @@ const DEFAULT_STAGES = [
   "Calculating chemistry",
   "Scouting the opponent",
   "Simulating key chances",
-  "Rendering match result"
+  "Rendering match result",
 ];
 
 function Matches() {
@@ -27,6 +27,7 @@ function Matches() {
   const [phaseIndex, setPhaseIndex] = useState(-1);
   const [resultData, setResultData] = useState(null);
   const [error, setError] = useState("");
+  const [matchCost, setMatchCost] = useState(0);
 
   const loadSquad = useCallback(async (showLoader = true) => {
     if (showLoader) {
@@ -39,7 +40,9 @@ function Matches() {
       const response = await api.get("/squad");
       setSquadData(response.data?.squad || response.data);
     } catch (requestError) {
-      setError(getErrorMessage(requestError, "Could not load your match-ready squad."));
+      setError(
+        getErrorMessage(requestError, "Could not load your match-ready squad."),
+      );
     } finally {
       if (showLoader) {
         setPageLoading(false);
@@ -49,6 +52,14 @@ function Matches() {
 
   useEffect(() => {
     loadSquad(true);
+    (async function loadConfig() {
+      try {
+        const response = await api.get("/config");
+        setMatchCost(Number(response.data?.matchCost || 0));
+      } catch (e) {
+        // ignore config errors silently
+      }
+    })();
   }, [loadSquad]);
 
   const startingXI = useMemo(() => squadData?.startingXI || [], [squadData]);
@@ -64,7 +75,7 @@ function Matches() {
     try {
       const response = await api.post("/matches/simulate", {
         difficulty,
-        opponentName
+        opponentName,
       });
       const payload = response.data || {};
       const nextStages = payload.processingStages || DEFAULT_STAGES;
@@ -81,14 +92,18 @@ function Matches() {
       await loadCurrentUser({ showLoader: false });
       await loadSquad(false);
     } catch (requestError) {
-      setError(getErrorMessage(requestError, "Could not simulate a match right now."));
+      setError(
+        getErrorMessage(requestError, "Could not simulate a match right now."),
+      );
     } finally {
       setSimulating(false);
     }
   }
 
   if (pageLoading) {
-    return <LoadingSpinner fullScreen text="Preparing the simulation arena..." />;
+    return (
+      <LoadingSpinner fullScreen text="Preparing the simulation arena..." />
+    );
   }
 
   if (!startingXI.length) {
@@ -118,8 +133,18 @@ function Matches() {
           <Link className="btn btn--ghost" to="/squad">
             Edit XI
           </Link>
-          <button className="btn btn--primary" disabled={simulating} onClick={handleSimulateMatch} type="button">
-            {simulating ? "Simulating..." : "Simulate Match"}
+          <button
+            className="btn btn--primary"
+            disabled={
+              simulating ||
+              (typeof user?.coins === "number" && user.coins < matchCost)
+            }
+            onClick={handleSimulateMatch}
+            type="button"
+          >
+            {simulating
+              ? "Simulating..."
+              : `Simulate Match${matchCost ? ` (${matchCost} coins)` : ""}`}
           </button>
         </div>
       }
@@ -128,20 +153,49 @@ function Matches() {
       eyebrow="Simulation Arena"
       title="Play A Match"
     >
-      {error ? <div className="form-message form-message--error">{error}</div> : null}
+      {error ? (
+        <div className="form-message form-message--error">{error}</div>
+      ) : null}
 
       <section className="match-summary">
-        <StatCard accent="green" hint="Club entering the simulation" icon="TM" label="Team" value={user?.teamName || `${user?.username || "Dream Squad"} FC`} />
-        <StatCard accent="cyan" hint="Saved tactical shape" icon="FM" label="Formation" value={squadData?.formation || "4-3-3"} />
-        <StatCard accent="gold" hint="Role-aware squad quality" icon="OVR" label="Overall" value={squadData?.overall || 0} />
-        <StatCard accent="purple" hint="Club, nation, and league links" icon="CH" label="Chemistry" value={insights.chemistryScore || 0} />
+        <StatCard
+          accent="green"
+          hint="Club entering the simulation"
+          icon="TM"
+          label="Team"
+          value={user?.teamName || `${user?.username || "Dream Squad"} FC`}
+        />
+        <StatCard
+          accent="cyan"
+          hint="Saved tactical shape"
+          icon="FM"
+          label="Formation"
+          value={squadData?.formation || "4-3-3"}
+        />
+        <StatCard
+          accent="gold"
+          hint="Role-aware squad quality"
+          icon="OVR"
+          label="Overall"
+          value={squadData?.overall || 0}
+        />
+        <StatCard
+          accent="purple"
+          hint="Club, nation, and league links"
+          icon="CH"
+          label="Chemistry"
+          value={insights.chemistryScore || 0}
+        />
       </section>
 
       <section className="surface-panel match-config">
         <div>
           <span className="section-heading__eyebrow">Pre-Match Setup</span>
           <h2>Choose the challenge level</h2>
-          <p>The simulation uses your saved XI, chemistry, tactical fit, and position-aware strength scores.</p>
+          <p>
+            The simulation uses your saved XI, chemistry, tactical fit, and
+            position-aware strength scores.
+          </p>
         </div>
 
         <div className="match-config__controls">
@@ -178,7 +232,10 @@ function Matches() {
             <div>
               <span className="section-heading__eyebrow">Smart Processing</span>
               <h2>{stages[phaseIndex] || "Preparing the match engine"}</h2>
-              <p>The simulation engine is weighing lineup balance, chemistry, role fit, and chance quality.</p>
+              <p>
+                The simulation engine is weighing lineup balance, chemistry,
+                role fit, and chance quality.
+              </p>
             </div>
           </div>
 
@@ -186,7 +243,11 @@ function Matches() {
             {stages.map((stage, index) => (
               <div
                 className={`match-processing__stage${
-                  index === phaseIndex ? " is-active" : index < phaseIndex ? " is-complete" : ""
+                  index === phaseIndex
+                    ? " is-active"
+                    : index < phaseIndex
+                      ? " is-complete"
+                      : ""
                 }`}
                 key={stage}
               >
@@ -201,7 +262,9 @@ function Matches() {
       {resultData?.match ? (
         <section className="match-result">
           <div className="surface-panel match-scoreboard">
-            <span className="section-heading__eyebrow">{resultData.result}</span>
+            <span className="section-heading__eyebrow">
+              {resultData.result}
+            </span>
             <div className="match-scoreboard__line">
               <div>
                 <span>Home</span>
@@ -220,8 +283,14 @@ function Matches() {
             <p>{resultData.match.recap}</p>
 
             <div className="match-scoreboard__economy">
-              <div className={`match-scoreboard__economy-card ${Number(resultData.coinChange || 0) >= 0 ? "is-positive" : "is-negative"}`}>
-                <span>{Number(resultData.coinChange || 0) >= 0 ? "Coins Won" : "Coins Lost"}</span>
+              <div
+                className={`match-scoreboard__economy-card ${Number(resultData.coinChange || 0) >= 0 ? "is-positive" : "is-negative"}`}
+              >
+                <span>
+                  {Number(resultData.coinChange || 0) >= 0
+                    ? "Coins Won"
+                    : "Coins Lost"}
+                </span>
                 <strong>
                   {Number(resultData.coinChange || 0) >= 0 ? "+" : ""}
                   {Number(resultData.coinChange || 0).toLocaleString()}
@@ -229,7 +298,14 @@ function Matches() {
               </div>
               <div className="match-scoreboard__economy-card">
                 <span>Balance After Match</span>
-                <strong>{Number(resultData.economy?.coinsAfterMatch ?? resultData.user?.coins ?? user?.coins ?? 0).toLocaleString()}</strong>
+                <strong>
+                  {Number(
+                    resultData.economy?.coinsAfterMatch ??
+                      resultData.user?.coins ??
+                      user?.coins ??
+                      0,
+                  ).toLocaleString()}
+                </strong>
               </div>
             </div>
           </div>
@@ -265,12 +341,16 @@ function Matches() {
 
               <div className="match-events">
                 {(resultData.match.events || []).map((event, index) => (
-                  <div className="match-event" key={`${event.minute}-${event.playerName}-${index}`}>
+                  <div
+                    className="match-event"
+                    key={`${event.minute}-${event.playerName}-${index}`}
+                  >
                     <span className="match-event__minute">{event.minute}'</span>
                     <div>
                       <strong>{event.playerName}</strong>
                       <p>
-                        {event.teamName} scored for the {event.side === "home" ? "home" : "away"} side.
+                        {event.teamName} scored for the{" "}
+                        {event.side === "home" ? "home" : "away"} side.
                       </p>
                     </div>
                   </div>
